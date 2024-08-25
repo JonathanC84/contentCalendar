@@ -1,7 +1,10 @@
 package com.halcyon.content_calendar.controller;
 
 import com.halcyon.content_calendar.model.Content;
+import com.halcyon.content_calendar.model.Status;
 import com.halcyon.content_calendar.repository.ContentCollectionRepository;
+import com.halcyon.content_calendar.repository.ContentRepository;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -11,13 +14,13 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/content")
+@CrossOrigin
 public class ContentController {
 
+    private final ContentRepository repository;
 
-    private final ContentCollectionRepository repository;
-
-    public ContentController(ContentCollectionRepository contentCollectionRepository) {
-        this.repository = contentCollectionRepository;
+    public ContentController(ContentRepository repository) {
+        this.repository = repository;
     }
 
     @GetMapping("")
@@ -32,7 +35,7 @@ public class ContentController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("")
-    public void create(@RequestBody Content content) {
+    public void create(@Valid @RequestBody Content content) {
         repository.save(content);
     }
 
@@ -48,6 +51,16 @@ public class ContentController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Integer id) {
-        repository.delete(id);
+        repository.deleteById(id);
+    }
+
+    @GetMapping("/filter/{keyword}")
+    public List<Content> findByTitle(@PathVariable String keyword) {
+        return repository.findAllByTitleContains(keyword);
+    }
+
+    @GetMapping("/filter/status/{status}")
+    public List<Content> findByStatus(@PathVariable Status status) {
+        return repository.listByStatus(status);
     }
 }
